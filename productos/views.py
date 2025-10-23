@@ -85,7 +85,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Filtra productos por clave o tipo de producto
+        Filtra productos por clave, tipo de producto, estado activo y rango de costos
         """
         queryset = super().get_queryset()
         
@@ -103,6 +103,34 @@ class ProductoViewSet(viewsets.ModelViewSet):
         activo = self.request.query_params.get('activo', None)
         if activo is not None:
             queryset = queryset.filter(activo=activo.lower() == 'true')
+        
+        # Filtros por rango de costos
+        costo_min = self.request.query_params.get('costo_min', None)
+        costo_max = self.request.query_params.get('costo_max', None)
+        
+        if costo_min is not None or costo_max is not None:
+            # Construir filtros para el rango de costos
+            costo_filters = Q()
+            
+            if costo_min is not None:
+                try:
+                    costo_min_val = float(costo_min)
+                    costo_filters &= Q(producto_proveedores__costo__gte=costo_min_val)
+                except (ValueError, TypeError):
+                    pass
+            
+            if costo_max is not None:
+                try:
+                    costo_max_val = float(costo_max)
+                    costo_filters &= Q(producto_proveedores__costo__lte=costo_max_val)
+                except (ValueError, TypeError):
+                    pass
+            
+            if costo_filters:
+                # Filtrar productos que tengan al menos un proveedor activo dentro del rango de costos
+                queryset = queryset.filter(
+                    costo_filters & Q(producto_proveedores__activo=True)
+                ).distinct()
         
         return queryset
 

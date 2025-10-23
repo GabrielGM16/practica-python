@@ -35,14 +35,22 @@ class ProductoListSerializer(serializers.ModelSerializer):
     """Serializer para listar productos (vista simplificada)"""
     tipo_producto_nombre = serializers.CharField(source='tipo_producto.nombre', read_only=True)
     cantidad_proveedores = serializers.SerializerMethodField()
+    costo_minimo = serializers.SerializerMethodField()
     
     class Meta:
         model = Producto
         fields = ['id', 'clave', 'nombre', 'tipo_producto', 'tipo_producto_nombre', 
-                  'cantidad_proveedores', 'activo']
+                  'cantidad_proveedores', 'costo_minimo', 'activo']
     
     def get_cantidad_proveedores(self, obj):
         return obj.producto_proveedores.filter(activo=True).count()
+    
+    def get_costo_minimo(self, obj):
+        """Calcula el costo mínimo de todos los proveedores activos"""
+        proveedores_activos = obj.producto_proveedores.filter(activo=True)
+        if proveedores_activos.exists():
+            return min(pp.costo for pp in proveedores_activos)
+        return None
 
 
 class ProductoDetailSerializer(serializers.ModelSerializer):

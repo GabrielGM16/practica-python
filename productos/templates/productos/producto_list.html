@@ -12,24 +12,46 @@
 <!-- Filtros de búsqueda -->
 <div class="bg-white rounded-lg shadow-md mb-6">
     <div class="p-6">
-        <form id="searchForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label for="searchClave" class="block text-sm font-medium text-gray-700 mb-2">Buscar por Clave</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchClave" placeholder="Ej: ELEC-001">
+        <form id="searchForm" class="space-y-4">
+            <!-- Primera fila -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="searchClave" class="block text-sm font-medium text-gray-700 mb-2">Buscar por Clave</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchClave" placeholder="Ej: ELEC-001">
+                </div>
+                <div>
+                    <label for="searchTipo" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Tipo</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchTipo">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <div class="flex space-x-2 w-full">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
+                            <i class="bi bi-search mr-2"></i> Buscar
+                        </button>
+                        <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center" id="btnLimpiar">
+                            <i class="bi bi-x-circle mr-2"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="searchTipo" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Tipo</label>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchTipo">
-                    <option value="">Todos los tipos</option>
-                </select>
-            </div>
-            <div class="flex items-end space-x-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
-                    <i class="bi bi-search mr-2"></i> Buscar
-                </button>
-                <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center" id="btnLimpiar">
-                    <i class="bi bi-x-circle mr-2"></i> Limpiar
-                </button>
+            <!-- Segunda fila - Filtros de costo -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="searchCostoMin" class="block text-sm font-medium text-gray-700 mb-2">Costo Mínimo</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                        <input type="number" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchCostoMin" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div>
+                    <label for="searchCostoMax" class="block text-sm font-medium text-gray-700 mb-2">Costo Máximo</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                        <input type="number" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="searchCostoMax" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -58,6 +80,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clave</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Producto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Mínimo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedores</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -122,6 +145,8 @@
         document.getElementById('btnLimpiar').addEventListener('click', function() {
             document.getElementById('searchClave').value = '';
             document.getElementById('searchTipo').value = '';
+            document.getElementById('searchCostoMin').value = '';
+            document.getElementById('searchCostoMax').value = '';
             cargarProductos();
         });
         
@@ -161,9 +186,13 @@
             
             const clave = document.getElementById('searchClave').value;
             const tipo = document.getElementById('searchTipo').value;
+            const costoMin = document.getElementById('searchCostoMin').value;
+            const costoMax = document.getElementById('searchCostoMax').value;
             
             if (clave) params.append('clave', clave);
             if (tipo) params.append('tipo_producto', tipo);
+            if (costoMin) params.append('costo_min', costoMin);
+            if (costoMax) params.append('costo_max', costoMax);
             
             if (params.toString()) {
                 url += '?' + params.toString();
@@ -201,10 +230,17 @@
             ? '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Activo</span>'
             : '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Inactivo</span>';
         
+        const costoMinimo = producto.costo_minimo ? `$${parseFloat(producto.costo_minimo).toFixed(2)}` : 'N/A';
+        
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap"><strong class="text-gray-900">${producto.clave}</strong></td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">${producto.nombre}</td>
             <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${producto.tipo_producto_nombre}</span></td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    <i class="bi bi-currency-dollar mr-1"></i> ${costoMinimo}
+                </span>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
                     <i class="bi bi-people mr-1"></i> ${producto.cantidad_proveedores}
