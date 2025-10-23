@@ -204,3 +204,29 @@ class ProductoProveedorViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(proveedor_id=proveedor_id)
         
         return queryset
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+
+
+def producto_list(request):
+    """Vista para listar productos"""
+    return render(request, 'productos/producto_list.html')
+
+
+def producto_create(request):
+    """Vista para crear un producto"""
+    return render(request, 'productos/producto_form.html', {
+        'modo': 'crear'
+    })
+
+
+def producto_edit(request, pk):
+    """Vista para editar un producto"""
+    # Verificar que el producto existe
+    producto = get_object_or_404(Producto, pk=pk)
+    return render(request, 'productos/producto_form.html', {
+        'modo': 'editar',
+        'producto_id': pk
+    })

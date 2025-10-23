@@ -1,0 +1,251 @@
+{% extends 'productos/base.html' %}
+
+{% block title %}Lista de Productos - Distribuidora{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-box-seam"></i> Gestión de Productos</h2>
+    </div>
+</div>
+
+<!-- Filtros de búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="searchForm" class="row g-3">
+            <div class="col-md-4">
+                <label for="searchClave" class="form-label">Buscar por Clave</label>
+                <input type="text" class="form-control" id="searchClave" placeholder="Ej: ELEC-001">
+            </div>
+            <div class="col-md-4">
+                <label for="searchTipo" class="form-label">Filtrar por Tipo</label>
+                <select class="form-select" id="searchTipo">
+                    <option value="">Todos los tipos</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnLimpiar">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Botón Agregar -->
+<div class="mb-3">
+    <a href="{% url 'producto_create' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Agregar Producto
+    </a>
+</div>
+
+<!-- Tabla de Productos -->
+<div class="card">
+    <div class="card-body">
+        <div id="loadingSpinner" class="text-center" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+        
+        <div id="productosTable" style="display: none;">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Clave</th>
+                            <th>Nombre</th>
+                            <th>Tipo de Producto</th>
+                            <th>Proveedores</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productosBody">
+                        <!-- Se llenará con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noResults" class="alert alert-info" style="display: none;">
+                <i class="bi bi-info-circle"></i> No se encontraron productos con los criterios de búsqueda.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar el producto?</p>
+                <p class="fw-bold" id="deleteProductoInfo"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const API_BASE_URL = '/productos/api';
+    let currentDeleteId = null;
+    let deleteModal = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        cargarTiposProducto();
+        cargarProductos();
+        
+        // Event listeners
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            cargarProductos();
+        });
+        
+        document.getElementById('btnLimpiar').addEventListener('click', function() {
+            document.getElementById('searchClave').value = '';
+            document.getElementById('searchTipo').value = '';
+            cargarProductos();
+        });
+        
+        document.getElementById('confirmDelete').addEventListener('click', eliminarProducto);
+    });
+
+    async function cargarTiposProducto() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tipos-producto/`);
+            const tipos = await response.json();
+            
+            const select = document.getElementById('searchTipo');
+            tipos.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.id;
+                option.textContent = tipo.nombre;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar tipos de producto:', error);
+        }
+    }
+
+    async function cargarProductos() {
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const productosTable = document.getElementById('productosTable');
+        const productosBody = document.getElementById('productosBody');
+        const noResults = document.getElementById('noResults');
+        
+        loadingSpinner.style.display = 'block';
+        productosTable.style.display = 'none';
+        
+        try {
+            // Construir URL con filtros
+            let url = `${API_BASE_URL}/productos/`;
+            const params = new URLSearchParams();
+            
+            const clave = document.getElementById('searchClave').value;
+            const tipo = document.getElementById('searchTipo').value;
+            
+            if (clave) params.append('clave', clave);
+            if (tipo) params.append('tipo_producto', tipo);
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            const response = await fetch(url);
+            const productos = await response.json();
+            
+            productosBody.innerHTML = '';
+            
+            if (productos.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+                productos.forEach(producto => {
+                    const row = crearFilaProducto(producto);
+                    productosBody.appendChild(row);
+                });
+            }
+            
+            loadingSpinner.style.display = 'none';
+            productosTable.style.display = 'block';
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+            loadingSpinner.style.display = 'none';
+            Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
+        }
+    }
+
+    function crearFilaProducto(producto) {
+        const row = document.createElement('tr');
+        
+        const estadoBadge = producto.activo 
+            ? '<span class="badge bg-success">Activo</span>'
+            : '<span class="badge bg-secondary">Inactivo</span>';
+        
+        row.innerHTML = `
+            <td><strong>${producto.clave}</strong></td>
+            <td>${producto.nombre}</td>
+            <td><span class="badge bg-info">${producto.tipo_producto_nombre}</span></td>
+            <td>
+                <span class="badge bg-primary">
+                    <i class="bi bi-people"></i> ${producto.cantidad_proveedores}
+                </span>
+            </td>
+            <td>${estadoBadge}</td>
+            <td>
+                <a href="/productos/editar/${producto.id}/" class="btn btn-sm btn-warning" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="btn btn-sm btn-danger" onclick="mostrarModalEliminar(${producto.id}, '${producto.clave}')" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        return row;
+    }
+
+    function mostrarModalEliminar(id, clave) {
+        currentDeleteId = id;
+        document.getElementById('deleteProductoInfo').textContent = `Clave: ${clave}`;
+        deleteModal.show();
+    }
+
+    async function eliminarProducto() {
+        if (!currentDeleteId) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/productos/${currentDeleteId}/`, {
+                method: 'DELETE',
+            });
+            
+            if (response.ok) {
+                deleteModal.hide();
+                Swal.fire('Eliminado', 'Producto eliminado correctamente', 'success');
+                cargarProductos();
+            } else {
+                const error = await response.json();
+                Swal.fire('Error', error.error || 'No se pudo eliminar el producto', 'error');
+            }
+        } catch (error) {
+            console.error('Error al eliminar producto:', error);
+            Swal.fire('Error', 'No se pudo eliminar el producto', 'error');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,422 @@
+{% extends 'productos/base.html' %}
+
+{% block title %}
+    {% if modo == 'crear' %}Crear Producto{% else %}Editar Producto{% endif %} - Distribuidora
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>
+            <i class="bi bi-{% if modo == 'crear' %}plus-circle{% else %}pencil{% endif %}"></i>
+            {% if modo == 'crear' %}Crear Nuevo Producto{% else %}Editar Producto{% endif %}
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Formulario Principal -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información del Producto</h5>
+            </div>
+            <div class="card-body">
+                <form id="productoForm">
+                    <div class="mb-3">
+                        <label for="clave" class="form-label">Clave <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="clave" required maxlength="50">
+                        <div class="invalid-feedback">La clave es requerida</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nombre" required maxlength="200">
+                        <div class="invalid-feedback">El nombre es requerido</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipo_producto" class="form-label">Tipo de Producto <span class="text-danger">*</span></label>
+                        <select class="form-select" id="tipo_producto" required>
+                            <option value="">Seleccione un tipo</option>
+                        </select>
+                        <div class="invalid-feedback">Debe seleccionar un tipo de producto</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="activo" checked>
+                            <label class="form-check-label" for="activo">
+                                Producto Activo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de Proveedores -->
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Proveedores del Producto</h5>
+                <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#proveedorModal">
+                    <i class="bi bi-plus-circle"></i> Agregar Proveedor
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="noProveedores" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No hay proveedores asignados. Agregue al menos uno.
+                </div>
+                
+                <div id="proveedoresTable" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Proveedor</th>
+                                    <th>Clave Proveedor</th>
+                                    <th>Costo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="proveedoresBody">
+                                <!-- Se llenará con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral -->
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Acciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary btn-lg" id="btnGuardar">
+                        <i class="bi bi-save"></i> Guardar Producto
+                    </button>
+                    <a href="{% url 'producto_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <div class="alert alert-warning mb-0">
+                    <small>
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Nota:</strong> Los campos marcados con <span class="text-danger">*</span> son obligatorios.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Proveedor -->
+<div class="modal fade" id="proveedorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Agregar Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="proveedorForm">
+                    <div class="mb-3">
+                        <label for="modal_proveedor" class="form-label">Proveedor <span class="text-danger">*</span></label>
+                        <select class="form-select" id="modal_proveedor" required>
+                            <option value="">Seleccione un proveedor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal_clave_proveedor" class="form-label">Clave del Proveedor <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="modal_clave_proveedor" required maxlength="100">
+                        <small class="form-text text-muted">Clave del producto según el proveedor</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal_costo" class="form-label">Costo <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="modal_costo" step="0.01" min="0.01" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnAgregarProveedor">
+                    <i class="bi bi-check-circle"></i> Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const API_BASE_URL = '/productos/api';
+    const MODO = '{{ modo }}';
+    const PRODUCTO_ID = {{ producto_id|default:'null' }};
+    
+    let proveedoresList = [];
+    let proveedoresData = [];
+    let tiposProducto = [];
+    let proveedorModal = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        proveedorModal = new bootstrap.Modal(document.getElementById('proveedorModal'));
+        
+        cargarTiposProducto();
+        cargarProveedores();
+        
+        if (MODO === 'editar' && PRODUCTO_ID) {
+            cargarProducto(PRODUCTO_ID);
+        }
+        
+        // Event listeners
+        document.getElementById('btnGuardar').addEventListener('click', guardarProducto);
+        document.getElementById('btnAgregarProveedor').addEventListener('click', agregarProveedor);
+    });
+
+    async function cargarTiposProducto() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tipos-producto/`);
+            tiposProducto = await response.json();
+            
+            const select = document.getElementById('tipo_producto');
+            tiposProducto.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.id;
+                option.textContent = tipo.nombre;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar tipos de producto:', error);
+            Swal.fire('Error', 'No se pudieron cargar los tipos de producto', 'error');
+        }
+    }
+
+    async function cargarProveedores() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/proveedores/`);
+            proveedoresList = await response.json();
+            
+            const select = document.getElementById('modal_proveedor');
+            proveedoresList.forEach(proveedor => {
+                const option = document.createElement('option');
+                option.value = proveedor.id;
+                option.textContent = proveedor.nombre;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar proveedores:', error);
+            Swal.fire('Error', 'No se pudieron cargar los proveedores', 'error');
+        }
+    }
+
+    async function cargarProducto(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/productos/${id}/`);
+            const producto = await response.json();
+            
+            // Llenar formulario
+            document.getElementById('clave').value = producto.clave;
+            document.getElementById('nombre').value = producto.nombre;
+            document.getElementById('tipo_producto').value = producto.tipo_producto;
+            document.getElementById('activo').checked = producto.activo;
+            
+            // Cargar proveedores
+            if (producto.proveedores_detalle && producto.proveedores_detalle.length > 0) {
+                proveedoresData = producto.proveedores_detalle.map(p => ({
+                    proveedor: p.proveedor,
+                    proveedor_nombre: p.proveedor_nombre,
+                    clave_proveedor: p.clave_proveedor,
+                    costo: p.costo,
+                    activo: p.activo
+                }));
+                actualizarTablaProveedores();
+            }
+        } catch (error) {
+            console.error('Error al cargar producto:', error);
+            Swal.fire('Error', 'No se pudo cargar el producto', 'error');
+        }
+    }
+
+    function agregarProveedor() {
+        const proveedorId = document.getElementById('modal_proveedor').value;
+        const claveProveedor = document.getElementById('modal_clave_proveedor').value.trim();
+        const costo = document.getElementById('modal_costo').value;
+        
+        if (!proveedorId || !claveProveedor || !costo) {
+            Swal.fire('Advertencia', 'Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        // Verificar si ya existe
+        if (proveedoresData.some(p => p.proveedor == proveedorId)) {
+            Swal.fire('Advertencia', 'Este proveedor ya está asignado al producto', 'warning');
+            return;
+        }
+        
+        const proveedor = proveedoresList.find(p => p.id == proveedorId);
+        
+        proveedoresData.push({
+            proveedor: parseInt(proveedorId),
+            proveedor_nombre: proveedor.nombre,
+            clave_proveedor: claveProveedor,
+            costo: parseFloat(costo),
+            activo: true
+        });
+        
+        actualizarTablaProveedores();
+        
+        // Limpiar y cerrar modal
+        document.getElementById('proveedorForm').reset();
+        proveedorModal.hide();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Proveedor agregado',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+
+    function eliminarProveedor(index) {
+        Swal.fire({
+            title: '¿Eliminar proveedor?',
+            text: '¿Está seguro de eliminar este proveedor del producto?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                proveedoresData.splice(index, 1);
+                actualizarTablaProveedores();
+                Swal.fire('Eliminado', 'Proveedor eliminado correctamente', 'success');
+            }
+        });
+    }
+
+    function actualizarTablaProveedores() {
+        const noProveedores = document.getElementById('noProveedores');
+        const proveedoresTable = document.getElementById('proveedoresTable');
+        const proveedoresBody = document.getElementById('proveedoresBody');
+        
+        if (proveedoresData.length === 0) {
+            noProveedores.style.display = 'block';
+            proveedoresTable.style.display = 'none';
+        } else {
+            noProveedores.style.display = 'none';
+            proveedoresTable.style.display = 'block';
+            
+            proveedoresBody.innerHTML = '';
+            proveedoresData.forEach((prov, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${prov.proveedor_nombre}</td>
+                    <td><code>${prov.clave_proveedor}</code></td>
+                    <td><strong>$${parseFloat(prov.costo).toFixed(2)}</strong></td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarProveedor(${index})" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                proveedoresBody.appendChild(row);
+            });
+        }
+    }
+
+    async function guardarProducto() {
+        // Validar formulario
+        const form = document.getElementById('productoForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            Swal.fire('Advertencia', 'Por favor complete todos los campos requeridos', 'warning');
+            return;
+        }
+        
+        const clave = document.getElementById('clave').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const tipoProducto = document.getElementById('tipo_producto').value;
+        const activo = document.getElementById('activo').checked;
+        
+        if (!clave || !nombre || !tipoProducto) {
+            Swal.fire('Advertencia', 'Por favor complete todos los campos requeridos', 'warning');
+            return;
+        }
+        
+        const data = {
+            clave: clave,
+            nombre: nombre,
+            tipo_producto: parseInt(tipoProducto),
+            activo: activo,
+            proveedores: proveedoresData.map(p => ({
+                proveedor: p.proveedor,
+                clave_proveedor: p.clave_proveedor,
+                costo: p.costo,
+                activo: p.activo
+            }))
+        };
+        
+        try {
+            let url = `${API_BASE_URL}/productos/`;
+            let method = 'POST';
+            
+            if (MODO === 'editar' && PRODUCTO_ID) {
+                url = `${API_BASE_URL}/productos/${PRODUCTO_ID}/`;
+                method = 'PUT';
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: MODO === 'crear' ? 'Producto creado' : 'Producto actualizado',
+                    text: 'La operación se realizó correctamente',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '/productos/';
+                });
+            } else {
+                const error = await response.json();
+                let errorMsg = 'No se pudo guardar el producto';
+                
+                if (error.clave) {
+                    errorMsg = error.clave[0];
+                } else if (error.error) {
+                    errorMsg = error.error;
+                }
+                
+                Swal.fire('Error', errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Error al guardar producto:', error);
+            Swal.fire('Error', 'No se pudo guardar el producto', 'error');
+        }
+    }
+</script>
+{% endblock %}
