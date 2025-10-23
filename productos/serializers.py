@@ -13,7 +13,7 @@ class TipoProductoSerializer(serializers.ModelSerializer):
 class ProveedorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proveedor
-        fields = ['id', 'nombre', 'descripcion', 'activo', 'fecha_creacion', 'fecha_modificacion']
+        fields = ['id', 'nombre', 'descripcion', 'departamento', 'activo', 'fecha_creacion', 'fecha_modificacion']
         read_only_fields = ['fecha_creacion', 'fecha_modificacion']
 
 

@@ -49,6 +49,22 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['nombre']
 
+    @action(detail=False, methods=['get'])
+    def departamentos(self, request):
+        """
+        Endpoint para obtener la lista de departamentos únicos
+        GET /api/proveedores/departamentos/
+        """
+        departamentos = Proveedor.objects.exclude(
+            departamento__isnull=True
+        ).exclude(
+            departamento__exact=''
+        ).values_list('departamento', flat=True).distinct().order_by('departamento')
+        
+        return Response({
+            'departamentos': list(departamentos)
+        })
+
     def destroy(self, request, *args, **kwargs):
         """Elimina un proveedor si no tiene productos asociados"""
         instance = self.get_object()
@@ -131,6 +147,14 @@ class ProductoViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(
                     costo_filters & Q(producto_proveedores__activo=True)
                 ).distinct()
+        
+        # Filtro por departamento de proveedor
+        departamento = self.request.query_params.get('departamento', None)
+        if departamento:
+            queryset = queryset.filter(
+                producto_proveedores__proveedor__departamento=departamento,
+                producto_proveedores__activo=True
+            ).distinct()
         
         return queryset
 

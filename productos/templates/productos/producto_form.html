@@ -79,8 +79,9 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clave Proveedor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
@@ -140,6 +141,15 @@
         <div class="p-4">
             <form id="proveedorForm" class="space-y-4">
                 <div>
+                    <label for="modal_departamento" class="block text-sm font-medium text-gray-700 mb-2">
+                        Departamento
+                    </label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" id="modal_departamento">
+                        <option value="">Todos los departamentos</option>
+                    </select>
+                </div>
+                
+                <div>
                     <label for="modal_proveedor" class="block text-sm font-medium text-gray-700 mb-2">
                         Proveedor <span class="text-red-500">*</span>
                     </label>
@@ -189,9 +199,12 @@
     let proveedoresList = [];
     let proveedoresData = [];
     let tiposProducto = [];
+    let departamentosList = [];
+    
     document.addEventListener('DOMContentLoaded', function() {
         cargarTiposProducto();
         cargarProveedores();
+        cargarDepartamentos();
         
         if (MODO === 'editar' && PRODUCTO_ID) {
             cargarProducto(PRODUCTO_ID);
@@ -200,6 +213,7 @@
         // Event listeners
         document.getElementById('btnGuardar').addEventListener('click', guardarProducto);
         document.getElementById('btnAgregarProveedor').addEventListener('click', agregarProveedor);
+        document.getElementById('modal_departamento').addEventListener('change', filtrarProveedoresPorDepartamento);
     });
 
     async function cargarTiposProducto() {
@@ -225,17 +239,61 @@
             const response = await fetch(`${API_BASE_URL}/proveedores/`);
             proveedoresList = await response.json();
             
-            const select = document.getElementById('modal_proveedor');
-            proveedoresList.forEach(proveedor => {
-                const option = document.createElement('option');
-                option.value = proveedor.id;
-                option.textContent = proveedor.nombre;
-                select.appendChild(option);
-            });
+            actualizarSelectProveedores();
         } catch (error) {
             console.error('Error al cargar proveedores:', error);
             Swal.fire('Error', 'No se pudieron cargar los proveedores', 'error');
         }
+    }
+
+    async function cargarDepartamentos() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/proveedores/departamentos/`);
+            const data = await response.json();
+            
+            // La API devuelve un objeto con la propiedad 'departamentos' que contiene el array
+            departamentosList = data.departamentos || [];
+            
+            const select = document.getElementById('modal_departamento');
+            if (Array.isArray(departamentosList)) {
+                departamentosList.forEach(departamento => {
+                    const option = document.createElement('option');
+                    option.value = departamento;
+                    option.textContent = departamento;
+                    select.appendChild(option);
+                });
+            } else {
+                console.error('La respuesta de departamentos no es un array:', departamentosList);
+                throw new Error('Formato de respuesta inválido');
+            }
+        } catch (error) {
+            console.error('Error al cargar departamentos:', error);
+            Swal.fire('Error', 'No se pudieron cargar los departamentos', 'error');
+        }
+    }
+
+    function actualizarSelectProveedores() {
+        const select = document.getElementById('modal_proveedor');
+        const departamentoSeleccionado = document.getElementById('modal_departamento').value;
+        
+        // Limpiar opciones existentes excepto la primera
+        select.innerHTML = '<option value="">Seleccione un proveedor</option>';
+        
+        // Filtrar proveedores según departamento seleccionado
+        const proveedoresFiltrados = departamentoSeleccionado 
+            ? proveedoresList.filter(proveedor => proveedor.departamento === departamentoSeleccionado)
+            : proveedoresList;
+        
+        proveedoresFiltrados.forEach(proveedor => {
+            const option = document.createElement('option');
+            option.value = proveedor.id;
+            option.textContent = proveedor.nombre;
+            select.appendChild(option);
+        });
+    }
+
+    function filtrarProveedoresPorDepartamento() {
+        actualizarSelectProveedores();
     }
 
     async function cargarProducto(id) {
@@ -251,13 +309,18 @@
             
             // Cargar proveedores
             if (producto.proveedores_detalle && producto.proveedores_detalle.length > 0) {
-                proveedoresData = producto.proveedores_detalle.map(p => ({
-                    proveedor: p.proveedor,
-                    proveedor_nombre: p.proveedor_nombre,
-                    clave_proveedor: p.clave_proveedor,
-                    costo: p.costo,
-                    activo: p.activo
-                }));
+                proveedoresData = producto.proveedores_detalle.map(p => {
+                    // Buscar el proveedor en la lista para obtener su departamento
+                    const proveedorCompleto = proveedoresList.find(prov => prov.id === p.proveedor);
+                    return {
+                        proveedor: p.proveedor,
+                        proveedor_nombre: p.proveedor_nombre,
+                        proveedor_departamento: proveedorCompleto ? proveedorCompleto.departamento : 'N/A',
+                        clave_proveedor: p.clave_proveedor,
+                        costo: p.costo,
+                        activo: p.activo
+                    };
+                });
                 actualizarTablaProveedores();
             }
         } catch (error) {
@@ -287,6 +350,7 @@
         proveedoresData.push({
             proveedor: parseInt(proveedorId),
             proveedor_nombre: proveedor.nombre,
+            proveedor_departamento: proveedor.departamento,
             clave_proveedor: claveProveedor,
             costo: parseFloat(costo),
             activo: true
@@ -296,6 +360,7 @@
         
         // Limpiar y cerrar modal
         document.getElementById('proveedorForm').reset();
+        actualizarSelectProveedores(); // Restaurar todos los proveedores
         closeModal('proveedorModal');
         
         Swal.fire({
@@ -343,8 +408,9 @@
             proveedoresData.forEach((prov, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${prov.proveedor_nombre}</td>
                     <td><code>${prov.clave_proveedor}</code></td>
+                    <td>${prov.proveedor_nombre}</td>
+                    <td><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${prov.proveedor_departamento || 'N/A'}</span></td>
                     <td><strong>$${parseFloat(prov.costo).toFixed(2)}</strong></td>
                     <td>
                         <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors inline-flex items-center" onclick="eliminarProveedor(${index})" title="Eliminar">
