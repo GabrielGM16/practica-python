@@ -30,10 +30,12 @@ CREATE TABLE proveedor (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL UNIQUE,
     descripcion TEXT,
+    departamento VARCHAR(100) NOT NULL COMMENT 'Departamento o categoría del proveedor (ej: Electrónicos, Alimentos, Ropa)',
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion DATETIME(6) NOT NULL,
     fecha_modificacion DATETIME(6) NOT NULL,
-    INDEX idx_nombre (nombre)
+    INDEX idx_nombre (nombre),
+    INDEX idx_departamento (departamento)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -94,12 +96,12 @@ INSERT INTO tipo_producto (nombre, descripcion, activo, fecha_creacion, fecha_mo
 ('Hogar', 'Artículos para el hogar', TRUE, NOW(), NOW());
 
 -- Insertar Proveedores
-INSERT INTO proveedor (nombre, descripcion, activo, fecha_creacion, fecha_modificacion) VALUES
-('TechSupply SA', 'Proveedor de productos tecnológicos', TRUE, NOW(), NOW()),
-('ElectroMundo', 'Distribuidor de electrónica', TRUE, NOW(), NOW()),
-('AlimentiCorp', 'Mayorista de alimentos', TRUE, NOW(), NOW()),
-('FoodDistributors', 'Distribución de productos alimenticios', TRUE, NOW(), NOW()),
-('ModaTotal', 'Proveedor de ropa y accesorios', TRUE, NOW(), NOW());
+INSERT INTO proveedor (nombre, descripcion, departamento, activo, fecha_creacion, fecha_modificacion) VALUES
+('TechSupply SA', 'Proveedor de productos tecnológicos', 'Electrónicos', TRUE, NOW(), NOW()),
+('ElectroMundo', 'Distribuidor de electrónica', 'Electrónicos', TRUE, NOW(), NOW()),
+('AlimentiCorp', 'Mayorista de alimentos', 'Alimentos', TRUE, NOW(), NOW()),
+('FoodDistributors', 'Distribución de productos alimenticios', 'Alimentos', TRUE, NOW(), NOW()),
+('ModaTotal', 'Proveedor de ropa y accesorios', 'Ropa', TRUE, NOW(), NOW());
 
 -- Insertar Productos
 INSERT INTO producto (clave, nombre, tipo_producto_id, activo, fecha_creacion, fecha_modificacion) VALUES

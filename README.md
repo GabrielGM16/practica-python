@@ -6,9 +6,10 @@ Sistema web desarrollado en Django para la gestión de productos y sus relacione
 
 - ✅ Gestión completa de productos (CRUD)
 - ✅ Relación many-to-many entre productos y proveedores
+- ✅ Categorización de proveedores por departamentos (Electrónicos, Alimentos, Ropa, etc.)
 - ✅ API REST completa con Django REST Framework
 - ✅ Interfaz web responsiva con Bootstrap 5
-- ✅ Búsqueda y filtrado de productos
+- ✅ Búsqueda y filtrado de productos y proveedores
 - ✅ Validaciones de datos
 - ✅ Manejo de errores
 
@@ -58,6 +59,10 @@ exit;
 
 # Ejecutar migraciones
 python manage.py migrate
+
+# Nota: La migración 0003_auto_20251023_1702.py incluye:
+# - Asignación automática de departamentos a proveedores existentes
+# - Conversión del campo 'departamento' de opcional a obligatorio
 ```
 
 ### 5. Configurar credenciales de BD
@@ -132,6 +137,7 @@ distribuidora-app/
 - `GET /api/proveedores/{id}/` - Detalle de proveedor
 - `PUT /api/proveedores/{id}/` - Actualizar proveedor
 - `DELETE /api/proveedores/{id}/` - Eliminar proveedor
+- `GET /api/proveedores/departamentos/` - Listar departamentos únicos
 
 ### Tipos de Producto
 - `GET /api/tipos-producto/` - Listar tipos
@@ -156,6 +162,7 @@ distribuidora-app/
 ### Proveedor
 - Nombre
 - Descripción
+- Departamento (Electrónicos, Alimentos, Ropa, etc.)
 - Activo
 
 ### Producto
@@ -174,10 +181,19 @@ distribuidora-app/
 ## 🧪 Búsqueda y Filtros
 
 La API soporta los siguientes parámetros de búsqueda:
+
+### Productos
 ```
 GET /api/productos/?clave=ELEC
 GET /api/productos/?tipo_producto=1
 GET /api/productos/?activo=true
+```
+
+### Proveedores
+```
+GET /api/proveedores/?departamento=Electrónicos
+GET /api/proveedores/?nombre=TechSupply
+GET /api/proveedores/?activo=true
 ```
 
 ## 👨‍💻 Tecnologías Utilizadas

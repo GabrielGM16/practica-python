@@ -26,10 +26,8 @@ class Proveedor(models.Model):
     nombre = models.CharField(max_length=200, unique=True)
     descripcion = models.TextField(blank=True)
     departamento = models.CharField(
-        max_length=100, 
-        blank=True, 
-        null=True,
-        help_text='Departamento o categoría del proveedor (ej: Limpieza, Alimentos)'
+        max_length=100,
+        help_text="Departamento o categoría del proveedor (ej: Electrónicos, Alimentos, Ropa)"
     )
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
