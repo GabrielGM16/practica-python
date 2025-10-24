@@ -4,6 +4,118 @@ import django.core.validators
 import django.db.models.deletion
 from decimal import Decimal
 from django.db import migrations, models
+from django.utils import timezone
+
+
+def crear_datos_iniciales(apps, schema_editor):
+    """Crear datos de prueba iniciales que coinciden con database_schema.sql"""
+    TipoProducto = apps.get_model('productos', 'TipoProducto')
+    Proveedor = apps.get_model('productos', 'Proveedor')
+    Producto = apps.get_model('productos', 'Producto')
+    ProductoProveedor = apps.get_model('productos', 'ProductoProveedor')
+    
+    # Insertar Tipos de Producto
+    tipos_producto = [
+        {'nombre': 'Electrónica', 'descripcion': 'Productos electrónicos y dispositivos'},
+        {'nombre': 'Alimentos', 'descripcion': 'Productos alimenticios y bebidas'},
+        {'nombre': 'Ropa', 'descripcion': 'Prendas de vestir y accesorios'},
+        {'nombre': 'Hogar', 'descripcion': 'Artículos para el hogar'},
+    ]
+    
+    for tipo_data in tipos_producto:
+        TipoProducto.objects.create(
+            nombre=tipo_data['nombre'],
+            descripcion=tipo_data['descripcion'],
+            activo=True,
+            fecha_creacion=timezone.now(),
+            fecha_modificacion=timezone.now()
+        )
+    
+    # Insertar Proveedores
+    proveedores_data = [
+        {'nombre': 'TechSupply SA', 'descripcion': 'Proveedor de productos tecnológicos', 'departamento': 'Electrónicos'},
+        {'nombre': 'ElectroMundo', 'descripcion': 'Distribuidor de electrónica', 'departamento': 'Electrónicos'},
+        {'nombre': 'AlimentiCorp', 'descripcion': 'Mayorista de alimentos', 'departamento': 'Alimentos'},
+        {'nombre': 'FoodDistributors', 'descripcion': 'Distribución de productos alimenticios', 'departamento': 'Alimentos'},
+        {'nombre': 'ModaTotal', 'descripcion': 'Proveedor de ropa y accesorios', 'departamento': 'Ropa'},
+    ]
+    
+    for prov_data in proveedores_data:
+        Proveedor.objects.create(
+            nombre=prov_data['nombre'],
+            descripcion=prov_data['descripcion'],
+            departamento=prov_data['departamento'],
+            activo=True,
+            fecha_creacion=timezone.now(),
+            fecha_modificacion=timezone.now()
+        )
+    
+    # Insertar Productos
+    tipo_electronica = TipoProducto.objects.get(nombre='Electrónica')
+    tipo_alimentos = TipoProducto.objects.get(nombre='Alimentos')
+    tipo_ropa = TipoProducto.objects.get(nombre='Ropa')
+    
+    productos_data = [
+        {'clave': 'ELEC-001', 'nombre': 'Laptop HP 15"', 'tipo_producto': tipo_electronica},
+        {'clave': 'ELEC-002', 'nombre': 'Mouse Inalámbrico Logitech', 'tipo_producto': tipo_electronica},
+        {'clave': 'ALI-001', 'nombre': 'Arroz Premium 1kg', 'tipo_producto': tipo_alimentos},
+        {'clave': 'ROP-001', 'nombre': 'Playera Algodón Unisex', 'tipo_producto': tipo_ropa},
+    ]
+    
+    for prod_data in productos_data:
+        Producto.objects.create(
+            clave=prod_data['clave'],
+            nombre=prod_data['nombre'],
+            tipo_producto=prod_data['tipo_producto'],
+            activo=True,
+            fecha_creacion=timezone.now(),
+            fecha_modificacion=timezone.now()
+        )
+    
+    # Insertar Relaciones Producto-Proveedor
+    laptop = Producto.objects.get(clave='ELEC-001')
+    mouse = Producto.objects.get(clave='ELEC-002')
+    arroz = Producto.objects.get(clave='ALI-001')
+    playera = Producto.objects.get(clave='ROP-001')
+    
+    tech_supply = Proveedor.objects.get(nombre='TechSupply SA')
+    electro_mundo = Proveedor.objects.get(nombre='ElectroMundo')
+    alimenti_corp = Proveedor.objects.get(nombre='AlimentiCorp')
+    food_distributors = Proveedor.objects.get(nombre='FoodDistributors')
+    moda_total = Proveedor.objects.get(nombre='ModaTotal')
+    
+    relaciones_data = [
+        {'producto': laptop, 'proveedor': tech_supply, 'clave_proveedor': 'HP-LAP-001', 'costo': Decimal('8500.00')},
+        {'producto': laptop, 'proveedor': electro_mundo, 'clave_proveedor': 'ELEC-HP-15', 'costo': Decimal('8200.00')},
+        {'producto': mouse, 'proveedor': tech_supply, 'clave_proveedor': 'LOG-M170', 'costo': Decimal('250.00')},
+        {'producto': arroz, 'proveedor': alimenti_corp, 'clave_proveedor': 'ARR-PREM-1K', 'costo': Decimal('45.00')},
+        {'producto': arroz, 'proveedor': food_distributors, 'clave_proveedor': 'FOOD-ARR-001', 'costo': Decimal('42.00')},
+        {'producto': playera, 'proveedor': moda_total, 'clave_proveedor': 'PLY-ALG-UNI', 'costo': Decimal('120.00')},
+    ]
+    
+    for rel_data in relaciones_data:
+        ProductoProveedor.objects.create(
+            producto=rel_data['producto'],
+            proveedor=rel_data['proveedor'],
+            clave_proveedor=rel_data['clave_proveedor'],
+            costo=rel_data['costo'],
+            activo=True,
+            fecha_creacion=timezone.now(),
+            fecha_modificacion=timezone.now()
+        )
+
+
+def eliminar_datos_iniciales(apps, schema_editor):
+    """Eliminar datos de prueba - función de reversión"""
+    TipoProducto = apps.get_model('productos', 'TipoProducto')
+    Proveedor = apps.get_model('productos', 'Proveedor')
+    Producto = apps.get_model('productos', 'Producto')
+    ProductoProveedor = apps.get_model('productos', 'ProductoProveedor')
+    
+    ProductoProveedor.objects.all().delete()
+    Producto.objects.all().delete()
+    Proveedor.objects.all().delete()
+    TipoProducto.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -14,40 +126,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Producto',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('clave', models.CharField(db_index=True, max_length=50, unique=True)),
-                ('nombre', models.CharField(max_length=200)),
-                ('activo', models.BooleanField(default=True)),
-                ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
-                ('fecha_modificacion', models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                'verbose_name': 'Producto',
-                'verbose_name_plural': 'Productos',
-                'db_table': 'producto',
-                'ordering': ['clave'],
-            },
-        ),
-        migrations.CreateModel(
-            name='Proveedor',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=200, unique=True)),
-                ('descripcion', models.TextField(blank=True)),
-                ('activo', models.BooleanField(default=True)),
-                ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
-                ('fecha_modificacion', models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                'verbose_name': 'Proveedor',
-                'verbose_name_plural': 'Proveedores',
-                'db_table': 'proveedor',
-                'ordering': ['nombre'],
-            },
-        ),
         migrations.CreateModel(
             name='TipoProducto',
             fields=[
@@ -63,6 +141,45 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Tipos de Productos',
                 'db_table': 'tipo_producto',
                 'ordering': ['nombre'],
+            },
+        ),
+        migrations.CreateModel(
+            name='Proveedor',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('nombre', models.CharField(max_length=200, unique=True)),
+                ('descripcion', models.TextField(blank=True)),
+                ('departamento', models.CharField(
+                    max_length=100,
+                    help_text="Departamento o categoría del proveedor (ej: Electrónicos, Alimentos, Ropa)"
+                )),
+                ('activo', models.BooleanField(default=True)),
+                ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
+                ('fecha_modificacion', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'verbose_name': 'Proveedor',
+                'verbose_name_plural': 'Proveedores',
+                'db_table': 'proveedor',
+                'ordering': ['nombre'],
+            },
+        ),
+        migrations.CreateModel(
+            name='Producto',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('clave', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('nombre', models.CharField(max_length=200)),
+                ('activo', models.BooleanField(default=True)),
+                ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
+                ('fecha_modificacion', models.DateTimeField(auto_now=True)),
+                ('tipo_producto', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='productos', to='productos.tipoproducto')),
+            ],
+            options={
+                'verbose_name': 'Producto',
+                'verbose_name_plural': 'Productos',
+                'db_table': 'producto',
+                'ordering': ['clave'],
             },
         ),
         migrations.CreateModel(
@@ -90,17 +207,38 @@ class Migration(migrations.Migration):
             name='proveedores',
             field=models.ManyToManyField(related_name='productos', through='productos.ProductoProveedor', to='productos.proveedor'),
         ),
-        migrations.AddField(
-            model_name='producto',
-            name='tipo_producto',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='productos', to='productos.tipoproducto'),
+        # Índices para optimización
+        migrations.AddIndex(
+            model_name='tipoproducto',
+            index=models.Index(fields=['nombre'], name='tipo_producto_nombre_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='proveedor',
+            index=models.Index(fields=['nombre'], name='proveedor_nombre_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='proveedor',
+            index=models.Index(fields=['departamento'], name='proveedor_departamento_idx'),
         ),
         migrations.AddIndex(
             model_name='producto',
-            index=models.Index(fields=['clave'], name='producto_clave_e3e5d4_idx'),
+            index=models.Index(fields=['clave'], name='producto_clave_idx'),
         ),
         migrations.AddIndex(
             model_name='producto',
-            index=models.Index(fields=['tipo_producto'], name='producto_tipo_pr_e57e96_idx'),
+            index=models.Index(fields=['tipo_producto'], name='producto_tipo_producto_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='productoproveedor',
+            index=models.Index(fields=['producto'], name='producto_proveedor_producto_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='productoproveedor',
+            index=models.Index(fields=['proveedor'], name='producto_proveedor_proveedor_idx'),
+        ),
+        # Crear datos iniciales
+        migrations.RunPython(
+            crear_datos_iniciales,
+            eliminar_datos_iniciales
         ),
     ]
