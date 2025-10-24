@@ -23,7 +23,7 @@ Sistema web desarrollado en Django para la gestión de productos y sus relacione
 
 ### 1. Clonar o descargar el proyecto
 ```bash
-cd distribuidora-app
+cd practica-python
 ```
 
 ### 2. Crear entorno virtual
