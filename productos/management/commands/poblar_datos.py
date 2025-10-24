@@ -6,62 +6,89 @@ from decimal import Decimal
 class Command(BaseCommand):
     help = 'Pobla la base de datos con datos de prueba'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--limpiar',
+            action='store_true',
+            help='Elimina todos los datos antes de crear nuevos',
+        )
+
     def handle(self, *args, **kwargs):
-        self.stdout.write('Creando datos de prueba...')
+        limpiar = kwargs.get('limpiar', False)
+        
+        # Verificar si ya hay datos
+        if Producto.objects.exists() and not limpiar:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'\n⚠️  Ya existen {Producto.objects.count()} productos en la base de datos.'
+                )
+            )
+            self.stdout.write(
+                self.style.NOTICE(
+                    '💡 Los datos se actualizarán/complementarán sin eliminar lo existente.'
+                )
+            )
+            self.stdout.write(
+                self.style.NOTICE(
+                    '   Si deseas eliminar TODO y empezar de cero, usa: python manage.py poblar_datos --limpiar\n'
+                )
+            )
 
-        # Limpiar datos existentes
-        ProductoProveedor.objects.all().delete()
-        Producto.objects.all().delete()
-        TipoProducto.objects.all().delete()
-        Proveedor.objects.all().delete()
+        if limpiar:
+            self.stdout.write(self.style.WARNING('\n🗑️  Limpiando datos existentes...'))
+            ProductoProveedor.objects.all().delete()
+            Producto.objects.all().delete()
+            TipoProducto.objects.all().delete()
+            Proveedor.objects.all().delete()
+            self.stdout.write(self.style.SUCCESS('   ✓ Datos eliminados'))
 
-        # Crear Tipos de Producto
-        tipos = [
-            TipoProducto.objects.create(
-                nombre='Electrónica',
-                descripcion='Productos electrónicos y dispositivos'
-            ),
-            TipoProducto.objects.create(
-                nombre='Alimentos',
-                descripcion='Productos alimenticios y bebidas'
-            ),
-            TipoProducto.objects.create(
-                nombre='Ropa',
-                descripcion='Prendas de vestir y accesorios'
-            ),
-            TipoProducto.objects.create(
-                nombre='Hogar',
-                descripcion='Artículos para el hogar'
-            ),
+        self.stdout.write('\n📦 Creando/Actualizando datos de prueba...\n')
+
+        # Crear/Actualizar Tipos de Producto
+        tipos = []
+        tipos_data = [
+            ('Electrónica', 'Productos electrónicos y dispositivos'),
+            ('Alimentos', 'Productos alimenticios y bebidas'),
+            ('Ropa', 'Prendas de vestir y accesorios'),
+            ('Hogar', 'Artículos para el hogar'),
         ]
-        self.stdout.write(self.style.SUCCESS(f'✓ Creados {len(tipos)} tipos de producto'))
+        
+        for nombre, descripcion in tipos_data:
+            tipo, created = TipoProducto.objects.update_or_create(
+                nombre=nombre,
+                defaults={'descripcion': descripcion}
+            )
+            tipos.append(tipo)
+            status = '✨ creado' if created else '🔄 actualizado'
+            self.stdout.write(f'   {status}: Tipo "{nombre}"')
 
-        # Crear Proveedores
-        proveedores = [
-            Proveedor.objects.create(
-                nombre='TechSupply SA',
-                descripcion='Proveedor de productos tecnológicos'
-            ),
-            Proveedor.objects.create(
-                nombre='ElectroMundo',
-                descripcion='Distribuidor de electrónica'
-            ),
-            Proveedor.objects.create(
-                nombre='AlimentiCorp',
-                descripcion='Mayorista de alimentos'
-            ),
-            Proveedor.objects.create(
-                nombre='FoodDistributors',
-                descripcion='Distribución de productos alimenticios'
-            ),
-            Proveedor.objects.create(
-                nombre='ModaTotal',
-                descripcion='Proveedor de ropa y accesorios'
-            ),
+        self.stdout.write(self.style.SUCCESS(f'\n✅ {len(tipos)} tipos de producto procesados'))
+
+        # Crear/Actualizar Proveedores
+        proveedores = []
+        proveedores_data = [
+            ('TechSupply SA', 'Proveedor de productos tecnológicos', 'Electrónicos'),
+            ('ElectroMundo', 'Distribuidor de electrónica', 'Electrónicos'),
+            ('AlimentiCorp', 'Mayorista de alimentos', 'Alimentos'),
+            ('FoodDistributors', 'Distribución de productos alimenticios', 'Alimentos'),
+            ('ModaTotal', 'Proveedor de ropa y accesorios', 'Ropa'),
         ]
-        self.stdout.write(self.style.SUCCESS(f'✓ Creados {len(proveedores)} proveedores'))
+        
+        for nombre, descripcion, departamento in proveedores_data:
+            proveedor, created = Proveedor.objects.update_or_create(
+                nombre=nombre,
+                defaults={
+                    'descripcion': descripcion,
+                    'departamento': departamento
+                }
+            )
+            proveedores.append(proveedor)
+            status = '✨ creado' if created else '🔄 actualizado'
+            self.stdout.write(f'   {status}: {nombre} (Depto: {departamento})')
 
-        # Crear Productos
+        self.stdout.write(self.style.SUCCESS(f'\n✅ {len(proveedores)} proveedores procesados'))
+
+        # Crear/Actualizar Productos
         productos_data = [
             {
                 'clave': 'ELEC-001',
@@ -147,21 +174,42 @@ class Command(BaseCommand):
             },
         ]
 
-        for prod_data in productos_data:
-            producto = Producto.objects.create(
-                clave=prod_data['clave'],
-                nombre=prod_data['nombre'],
-                tipo_producto=prod_data['tipo']
-            )
+        productos_creados = 0
+        productos_actualizados = 0
+        relaciones_creadas = 0
+        relaciones_actualizadas = 0
 
-            # Agregar proveedores
+        for prod_data in productos_data:
+            producto, created = Producto.objects.update_or_create(
+                clave=prod_data['clave'],
+                defaults={
+                    'nombre': prod_data['nombre'],
+                    'tipo_producto': prod_data['tipo']
+                }
+            )
+            
+            if created:
+                productos_creados += 1
+                self.stdout.write(f'   ✨ Producto creado: {prod_data["clave"]} - {prod_data["nombre"]}')
+            else:
+                productos_actualizados += 1
+                self.stdout.write(f'   🔄 Producto actualizado: {prod_data["clave"]} - {prod_data["nombre"]}')
+
+            # Agregar/Actualizar proveedores
             for prov_data in prod_data['proveedores']:
-                ProductoProveedor.objects.create(
+                relacion, created = ProductoProveedor.objects.update_or_create(
                     producto=producto,
                     proveedor=prov_data['proveedor'],
-                    clave_proveedor=prov_data['clave'],
-                    costo=prov_data['costo']
+                    defaults={
+                        'clave_proveedor': prov_data['clave'],
+                        'costo': prov_data['costo']
+                    }
                 )
+                if created:
+                    relaciones_creadas += 1
+                else:
+                    relaciones_actualizadas += 1
 
-        self.stdout.write(self.style.SUCCESS(f'✓ Creados {len(productos_data)} productos'))
-        self.stdout.write(self.style.SUCCESS('\n¡Datos de prueba creados exitosamente!'))
+        self.stdout.write(self.style.SUCCESS(f'\n✅ Productos: {productos_creados} creados, {productos_actualizados} actualizados'))
+        self.stdout.write(self.style.SUCCESS(f'✅ Relaciones: {relaciones_creadas} creadas, {relaciones_actualizadas} actualizadas'))
+        self.stdout.write(self.style.SUCCESS('\n🎉 ¡Proceso completado exitosamente!\n'))
