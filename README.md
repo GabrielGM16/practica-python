@@ -8,7 +8,7 @@ Sistema web desarrollado en Django para la gestión de productos y sus relacione
 -  Relación many-to-many entre productos y proveedores
 -  Categorización de proveedores por departamentos (Electrónicos, Alimentos, Ropa, etc.)
 -  API REST completa con Django REST Framework
--  Interfaz web responsiva con Bootstrap 5
+-  Interfaz web responsiva con Tailwind CSS
 -  Búsqueda y filtrado de productos y proveedores
 -  Validaciones de datos
 -  Manejo de errores
@@ -201,8 +201,8 @@ GET /api/proveedores/?activo=true
 - **Backend**: Python 3.9+, Django 4.x
 - **API**: Django REST Framework
 - **Base de Datos**: MySQL
-- **Frontend**: Bootstrap 5, JavaScript (Vanilla)
-- **Estilos**: Bootstrap Icons
+- **Frontend**: Tailwind CSS, JavaScript (Vanilla)
+- **Estilos**: Tailwind CSS, Bootstrap Icons
 
 ##  Notas Adicionales
 
@@ -210,11 +210,3 @@ GET /api/proveedores/?activo=true
 - Las relaciones producto-proveedor se manejan automáticamente
 - El sistema incluye validaciones tanto en backend como frontend
 - Los costos deben ser valores positivos
-
-##  Soporte
-
-Para reportar problemas o sugerencias, contactar al desarrollador.
-
-##  Licencia
-
-Proyecto de práctica - Uso educativo
