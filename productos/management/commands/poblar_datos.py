@@ -20,12 +20,12 @@ class Command(BaseCommand):
         if Producto.objects.exists() and not limpiar:
             self.stdout.write(
                 self.style.WARNING(
-                    f'\n⚠️  Ya existen {Producto.objects.count()} productos en la base de datos.'
+                    f'\n  Ya existen {Producto.objects.count()} productos en la base de datos.'
                 )
             )
             self.stdout.write(
                 self.style.NOTICE(
-                    '💡 Los datos se actualizarán/complementarán sin eliminar lo existente.'
+                    ' Los datos se actualizarán/complementarán sin eliminar lo existente.'
                 )
             )
             self.stdout.write(
@@ -35,14 +35,14 @@ class Command(BaseCommand):
             )
 
         if limpiar:
-            self.stdout.write(self.style.WARNING('\n🗑️  Limpiando datos existentes...'))
+            self.stdout.write(self.style.WARNING('\n  Limpiando datos existentes...'))
             ProductoProveedor.objects.all().delete()
             Producto.objects.all().delete()
             TipoProducto.objects.all().delete()
             Proveedor.objects.all().delete()
             self.stdout.write(self.style.SUCCESS('   ✓ Datos eliminados'))
 
-        self.stdout.write('\n📦 Creando/Actualizando datos de prueba...\n')
+        self.stdout.write('\n Creando/Actualizando datos de prueba...\n')
 
         # Crear/Actualizar Tipos de Producto
         tipos = []
@@ -59,10 +59,10 @@ class Command(BaseCommand):
                 defaults={'descripcion': descripcion}
             )
             tipos.append(tipo)
-            status = '✨ creado' if created else '🔄 actualizado'
+            status = ' creado' if created else ' actualizado'
             self.stdout.write(f'   {status}: Tipo "{nombre}"')
 
-        self.stdout.write(self.style.SUCCESS(f'\n✅ {len(tipos)} tipos de producto procesados'))
+        self.stdout.write(self.style.SUCCESS(f'\n {len(tipos)} tipos de producto procesados'))
 
         # Crear/Actualizar Proveedores
         proveedores = []
@@ -83,10 +83,10 @@ class Command(BaseCommand):
                 }
             )
             proveedores.append(proveedor)
-            status = '✨ creado' if created else '🔄 actualizado'
+            status = ' creado' if created else ' actualizado'
             self.stdout.write(f'   {status}: {nombre} (Depto: {departamento})')
 
-        self.stdout.write(self.style.SUCCESS(f'\n✅ {len(proveedores)} proveedores procesados'))
+        self.stdout.write(self.style.SUCCESS(f'\n {len(proveedores)} proveedores procesados'))
 
         # Crear/Actualizar Productos
         productos_data = [
@@ -190,10 +190,10 @@ class Command(BaseCommand):
             
             if created:
                 productos_creados += 1
-                self.stdout.write(f'   ✨ Producto creado: {prod_data["clave"]} - {prod_data["nombre"]}')
+                self.stdout.write(f'    Producto creado: {prod_data["clave"]} - {prod_data["nombre"]}')
             else:
                 productos_actualizados += 1
-                self.stdout.write(f'   🔄 Producto actualizado: {prod_data["clave"]} - {prod_data["nombre"]}')
+                self.stdout.write(f'    Producto actualizado: {prod_data["clave"]} - {prod_data["nombre"]}')
 
             # Agregar/Actualizar proveedores
             for prov_data in prod_data['proveedores']:
@@ -210,6 +210,6 @@ class Command(BaseCommand):
                 else:
                     relaciones_actualizadas += 1
 
-        self.stdout.write(self.style.SUCCESS(f'\n✅ Productos: {productos_creados} creados, {productos_actualizados} actualizados'))
-        self.stdout.write(self.style.SUCCESS(f'✅ Relaciones: {relaciones_creadas} creadas, {relaciones_actualizadas} actualizadas'))
+        self.stdout.write(self.style.SUCCESS(f'\n Productos: {productos_creados} creados, {productos_actualizados} actualizados'))
+        self.stdout.write(self.style.SUCCESS(f' Relaciones: {relaciones_creadas} creadas, {relaciones_actualizadas} actualizadas'))
         self.stdout.write(self.style.SUCCESS('\n🎉 ¡Proceso completado exitosamente!\n'))

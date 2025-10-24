@@ -2,16 +2,16 @@
 
 Sistema web desarrollado en Django para la gestión de productos y sus relaciones con proveedores.
 
-## 🚀 Características
+##  Características
 
-- ✅ Gestión completa de productos (CRUD)
-- ✅ Relación many-to-many entre productos y proveedores
-- ✅ Categorización de proveedores por departamentos (Electrónicos, Alimentos, Ropa, etc.)
-- ✅ API REST completa con Django REST Framework
-- ✅ Interfaz web responsiva con Bootstrap 5
-- ✅ Búsqueda y filtrado de productos y proveedores
-- ✅ Validaciones de datos
-- ✅ Manejo de errores
+-  Gestión completa de productos (CRUD)
+-  Relación many-to-many entre productos y proveedores
+-  Categorización de proveedores por departamentos (Electrónicos, Alimentos, Ropa, etc.)
+-  API REST completa con Django REST Framework
+-  Interfaz web responsiva con Bootstrap 5
+-  Búsqueda y filtrado de productos y proveedores
+-  Validaciones de datos
+-  Manejo de errores
 
 ## 📋 Requisitos
 
@@ -98,7 +98,7 @@ python manage.py runserver
 
 Abrir navegador en: `http://127.0.0.1:8000/`
 
-## 📚 Estructura del Proyecto
+##  Estructura del Proyecto
 ```
 distribuidora-app/
 │
@@ -121,7 +121,7 @@ distribuidora-app/
 └── README.md              # Este archivo
 ```
 
-## 🌐 Endpoints de la API
+##  Endpoints de la API
 
 ### Productos
 - `GET /api/productos/` - Listar productos
@@ -146,13 +146,13 @@ distribuidora-app/
 - `PUT /api/tipos-producto/{id}/` - Actualizar tipo
 - `DELETE /api/tipos-producto/{id}/` - Eliminar tipo
 
-## 🎨 Interfaces Disponibles
+##  Interfaces Disponibles
 
 - **Frontend**: `http://127.0.0.1:8000/productos/`
 - **API REST**: `http://127.0.0.1:8000/api/`
 - **Admin Django**: `http://127.0.0.1:8000/admin/`
 
-## 📊 Modelos de Datos
+##  Modelos de Datos
 
 ### TipoProducto
 - Nombre
@@ -178,7 +178,7 @@ distribuidora-app/
 - Clave del Proveedor
 - Costo
 
-## 🧪 Búsqueda y Filtros
+##  Búsqueda y Filtros
 
 La API soporta los siguientes parámetros de búsqueda:
 
@@ -196,7 +196,7 @@ GET /api/proveedores/?nombre=TechSupply
 GET /api/proveedores/?activo=true
 ```
 
-## 👨‍💻 Tecnologías Utilizadas
+##  Tecnologías Utilizadas
 
 - **Backend**: Python 3.9+, Django 4.x
 - **API**: Django REST Framework
@@ -204,17 +204,17 @@ GET /api/proveedores/?activo=true
 - **Frontend**: Bootstrap 5, JavaScript (Vanilla)
 - **Estilos**: Bootstrap Icons
 
-## 📝 Notas Adicionales
+##  Notas Adicionales
 
 - Todos los endpoints de la API usan formato JSON
 - Las relaciones producto-proveedor se manejan automáticamente
 - El sistema incluye validaciones tanto en backend como frontend
 - Los costos deben ser valores positivos
 
-## 🤝 Soporte
+##  Soporte
 
 Para reportar problemas o sugerencias, contactar al desarrollador.
 
-## 📄 Licencia
+##  Licencia
 
 Proyecto de práctica - Uso educativo
