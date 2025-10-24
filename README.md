@@ -13,13 +13,13 @@ Sistema web desarrollado en Django para la gestión de productos y sus relacione
 -  Validaciones de datos
 -  Manejo de errores
 
-## 📋 Requisitos
+##  Requisitos
 
 - Python 3.9 o superior
 - MySQL 5.7 o superior (o PostgreSQL)
 - pip (gestor de paquetes de Python)
 
-## 🔧 Instalación
+##  Instalación
 
 ### 1. Clonar o descargar el proyecto
 ```bash
