@@ -44,13 +44,7 @@ pip install -r requirements.txt
 
 ### 4. Configurar la base de datos
 
-**Opción A: Usar el script SQL**
-```bash
-# Ejecutar el script database_schema.sql en MySQL
-mysql -u root -p < database_schema.sql
-```
-
-**Opción B: Usar migraciones de Django**
+**Opción A: Usar migraciones de Django**
 ```bash
 # Crear la base de datos manualmente
 mysql -u root -p
@@ -59,10 +53,12 @@ exit;
 
 # Ejecutar migraciones
 python manage.py migrate
+```
 
-# Nota: La migración 0003_auto_20251023_1702.py incluye:
-# - Asignación automática de departamentos a proveedores existentes
-# - Conversión del campo 'departamento' de opcional a obligatorio
+**Opción B: Usar el script SQL**
+```bash
+# Ejecutar el script database_schema.sql en MySQL
+mysql -u root -p < database_schema.sql
 ```
 
 ### 5. Configurar credenciales de BD
